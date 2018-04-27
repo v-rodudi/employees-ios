@@ -12,6 +12,7 @@ namespace EmployeesIOS
     {
         private Entry searchField = new Entry();
         private EmployeesHelper eh;
+        private Label searchResult = new Label { IsVisible = false };
 
         public SearchPage (EmployeesHelper eh)
         {
@@ -26,15 +27,17 @@ namespace EmployeesIOS
             Content = new StackLayout {
                 Children = {
                     searchField,
-                    searchButton
+                    searchButton,
+                    searchResult
                 }
             };
         }
 
         private void SearchButton_Clicked(object sender, EventArgs e)
         {
-            var query = searchField.Text;
-
+            var res = eh.GetEmployee(searchField.Text);
+            searchResult.Text = res;
+            searchResult.IsVisible = true;
         }
     }
 }
