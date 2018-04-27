@@ -1,9 +1,7 @@
 ﻿using EmployeesLibrary;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UIKit;
 using Xamarin.Forms;
 
 namespace EmployeesIOS
@@ -13,13 +11,19 @@ namespace EmployeesIOS
         private EmployeesHelper eh;
         private List<EmployeeModel> employees;
         private StackLayout stack;
+        private Button refreshButton;
+        private int selectedEmployeeId = -1;
 
         public MainPage(EmployeesHelper eh)
         {
             this.eh = eh;
             Title = "Employees List";
-            
+            BindingContext = employees;
+
             employees = eh.GetEmployees();
+
+            refreshButton = new Button { Text = "Refresh" };
+            refreshButton.Clicked += RefreshButton_Clicked;
 
             stack = new StackLayout
             {
@@ -28,13 +32,34 @@ namespace EmployeesIOS
                 VerticalOptions = LayoutOptions.Start
             };
 
+            stack.Children.Add(refreshButton);
+
             foreach (var employee in employees)
             {
                 if (employee != null)
                 {
-                    stack.Children.Add(new Label()
+                    var button = new Button
                     {
-                        Text = employee.ToString()
+                        Text = "Delete",
+                        TextColor = Color.WhiteSmoke,
+                        BackgroundColor = Color.DarkRed,
+                        Margin = new Thickness(5),
+                        HorizontalOptions = new LayoutOptions(LayoutAlignment.End, true),
+                        CommandParameter = employee.Id,
+                    };
+                    button.Clicked += Button_Clicked;
+
+                        stack.Children.Add(new StackLayout
+                    {
+                        Orientation = StackOrientation.Horizontal,
+                        Children =
+                        {
+                            new Label()
+                            {
+                                Text = employee.ToString(),
+                            },
+                            button
+                        }
                     });
                 }
             }
@@ -44,17 +69,31 @@ namespace EmployeesIOS
             Content = new ScrollView { Content = stack };
         }
 
-        private void SearchBar_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Button_Clicked(object sender, EventArgs e)
         {
-            string query = ((SearchBar)sender).Text;
-            var empl = eh.GetEmployeeByName(query);
-            if (empl != null)
+            selectedEmployeeId = int.Parse(((Button)sender).CommandParameter.ToString());
+            var a = new UIAlertView
             {
-                employees = new List<EmployeeModel>
-                {
-                    empl
-                };
+                Title = "Delete",
+                Message = "Delete employee #" + selectedEmployeeId + "?",
+            };
+            a.AddButton("Cancel");
+            a.AddButton("Ok");
+            a.Clicked += A_Clicked;
+            a.Show();
+        }
+
+        private void A_Clicked(object sender, UIButtonEventArgs e)
+        {
+            if (e.ButtonIndex == 1)
+            {
+                eh.DeleteEmployee(selectedEmployeeId);
             }
+        }
+
+        private void RefreshButton_Clicked(object sender, EventArgs e)
+        {
+            employees = eh.GetEmployees();
         }
     }
 }

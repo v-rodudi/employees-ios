@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 using Newtonsoft.Json;
 
@@ -11,22 +11,21 @@ namespace EmployeesLibrary
     {
         private List<EmployeeModel> employees;
         private string employeesString;
-        string pathToJson;
+        string docsPathToJson;
 
         public int MyProperty { get; set; }
 
         public EmployeesHelper(string pathToJson)
         {
-            this.pathToJson = pathToJson;
+            docsPathToJson = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), pathToJson);
 
-            /*var assembly = IntrospectionExtensions.GetTypeInfo(typeof(EmployeesHelper)).Assembly;
-            Stream stream = assembly.GetManifestResourceStream("EmployeesLibrary.employees.json");
-            using (var reader = new StreamReader(stream))
+            // On first run copy file to Application's Documents directory.
+            if (!File.Exists(docsPathToJson))
             {
-                employeesString = reader.ReadToEnd();
-            }*/
+                File.Copy(pathToJson, docsPathToJson);
+            }
 
-            employeesString = File.ReadAllText(pathToJson);
+            employeesString = File.ReadAllText(docsPathToJson);
             employees = new List<EmployeeModel>(JsonConvert.DeserializeObject<EmployeeModel[]>(employeesString));
         }
 
@@ -71,8 +70,7 @@ namespace EmployeesLibrary
         public void AddEmployee(EmployeeModel employeeModel)
         {
             employees.Add(employeeModel);
-            /*File.Create("employees.json");
-            File.WriteAllText("employees.json", JsonConvert.SerializeObject(employees));*/
+            SaveEmployees();
         }
 
         public void AddEmployee(string empl)
@@ -109,6 +107,17 @@ namespace EmployeesLibrary
             }
 
             return result != null ? result.ToString() : "Not found!";
+        }
+
+        public void DeleteEmployee(int selectedEmployeeId)
+        {
+            employees.Remove(employees.Find((empl) => empl.Id == selectedEmployeeId));
+            SaveEmployees();
+        }
+
+        private void SaveEmployees()
+        {
+            File.WriteAllText(docsPathToJson, JsonConvert.SerializeObject(employees));
         }
     }
 }
