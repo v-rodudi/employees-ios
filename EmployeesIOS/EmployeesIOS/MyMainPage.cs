@@ -1,8 +1,4 @@
 ﻿using EmployeesLibrary;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using Xamarin.Forms;
 
@@ -13,11 +9,12 @@ namespace EmployeesIOS
         private EmployeesHelper eh;
 
         public MyMainPage ()
-		{
+        {
             eh = new EmployeesHelper("employees.json");
 
             Children.Add(new MainPage(eh));
+            Children.Add(new AddEmployeePage(eh));
             Children.Add(new SearchPage(eh));
-		}
+        }
 	}
 }
